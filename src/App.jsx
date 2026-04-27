@@ -18,14 +18,18 @@ import {
   Trash2,
   Check,
   Circle,
-  Filter
+  Filter,
+  Pencil,
+  X
 } from 'lucide-react';
 
 function App() {
   const [tasks, setTasks] = useState([]);
   const [newTask, setNewTask] = useState('');
+  const [description, setDescription] = useState('');
   const [criticality, setCriticality] = useState('Medium');
   const [dueDate, setDueDate] = useState('');
+  const [editingId, setEditingId] = useState(null);
   const [filter, setFilter] = useState('all'); // all, pending, completed
   const [theme, setTheme] = useState(localStorage.getItem('theme') || 'light');
 
@@ -49,33 +53,53 @@ function App() {
     return () => unsubscribe();
   }, []);
 
-  const addTask = async (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!newTask.trim()) return;
 
     try {
-      console.log("Attempting to add task:", newTask);
-      const docRef = await addDoc(collection(db, 'tasks'), {
-        text: newTask,
-        completed: false,
-        criticality: criticality,
-        dueDate: dueDate,
-        createdAt: serverTimestamp()
-      });
-      console.log("Task added with ID:", docRef.id);
-      setNewTask('');
-      setDueDate('');
-      setCriticality('Medium');
-    } catch (err) {
-      console.error("Detailed Error adding task:", err);
-      if (err.code === 'permission-denied') {
-        alert("Permission denied! Please check your Firestore Security Rules.");
-      } else if (err.code === 'unavailable') {
-        alert("Firestore is unavailable. Check your internet connection.");
+      if (editingId) {
+        // Update existing task
+        await updateDoc(doc(db, 'tasks', editingId), {
+          text: newTask,
+          description: description,
+          criticality: criticality,
+          dueDate: dueDate
+        });
+        setEditingId(null);
       } else {
-        alert(`Failed to add task: ${err.message}. Ensure you have created the Firestore database in the Firebase Console.`);
+        // Add new task
+        await addDoc(collection(db, 'tasks'), {
+          text: newTask,
+          description: description,
+          completed: false,
+          criticality: criticality,
+          dueDate: dueDate,
+          createdAt: serverTimestamp()
+        });
       }
+      resetForm();
+    } catch (err) {
+      console.error("Error saving task:", err);
+      alert(`Error: ${err.message}`);
     }
+  };
+
+  const resetForm = () => {
+    setNewTask('');
+    setDescription('');
+    setCriticality('Medium');
+    setDueDate('');
+    setEditingId(null);
+  };
+
+  const startEdit = (task) => {
+    setEditingId(task.id);
+    setNewTask(task.text);
+    setDescription(task.description || '');
+    setCriticality(task.criticality || 'Medium');
+    setDueDate(task.dueDate || '');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const toggleTask = async (id, currentStatus) => {
@@ -85,7 +109,6 @@ function App() {
       });
     } catch (err) {
       console.error("Error toggling task:", err);
-      alert("Error updating task status. Check console for details.");
     }
   };
 
@@ -118,36 +141,46 @@ function App() {
         </button>
       </header>
 
-      <form className="input-group" onSubmit={addTask}>
+      <form className="input-group" onSubmit={handleSubmit}>
         <div className="input-row">
           <input
             type="text"
-            placeholder="What needs to be done?"
+            placeholder="Task title..."
             value={newTask}
             onChange={(e) => setNewTask(e.target.value)}
+            required
           />
           <button type="submit" className="add-btn">
-            <Plus size={20} style={{ verticalAlign: 'middle', marginRight: '4px' }} />
-            Add
+            {editingId ? <Check size={20} /> : <Plus size={20} />}
+            {editingId ? 'Update' : 'Add'}
           </button>
+          {editingId && (
+            <button type="button" className="theme-toggle" onClick={resetForm}>
+              <X size={20} />
+            </button>
+          )}
         </div>
+
+        <textarea
+          placeholder="Add a description (optional)..."
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+        />
 
         <div className="input-controls">
           <select
             value={criticality}
             onChange={(e) => setCriticality(e.target.value)}
-            aria-label="Criticality"
           >
-            <option value="Low">Low</option>
-            <option value="Medium">Medium</option>
-            <option value="High">High</option>
+            <option value="Low">Low Priority</option>
+            <option value="Medium">Medium Priority</option>
+            <option value="High">High Priority</option>
           </select>
 
           <input
             type="date"
             value={dueDate}
             onChange={(e) => setDueDate(e.target.value)}
-            aria-label="Due Date"
           />
         </div>
       </form>
@@ -157,26 +190,26 @@ function App() {
           className={`filter-btn ${filter === 'all' ? 'active' : ''}`}
           onClick={() => setFilter('all')}
         >
-          All
+          All ({tasks.length})
         </button>
         <button
           className={`filter-btn ${filter === 'pending' ? 'active' : ''}`}
           onClick={() => setFilter('pending')}
         >
-          Pending
+          Pending ({tasks.filter(t => !t.completed).length})
         </button>
         <button
           className={`filter-btn ${filter === 'completed' ? 'active' : ''}`}
           onClick={() => setFilter('completed')}
         >
-          Completed
+          Completed ({tasks.filter(t => t.completed).length})
         </button>
       </div>
 
       <div className="task-list">
         {filteredTasks.length === 0 ? (
           <p style={{ textAlign: 'center', color: 'var(--text-muted)', marginTop: '2rem' }}>
-            No tasks found in this category.
+            No tasks found.
           </p>
         ) : (
           filteredTasks.map(task => (
@@ -194,6 +227,12 @@ function App() {
                   </span>
                 </div>
 
+                {task.description && (
+                  <p className={`task-desc ${task.completed ? 'completed' : ''}`}>
+                    {task.description}
+                  </p>
+                )}
+
                 <div className="task-meta">
                   <span className={`badge ${task.criticality?.toLowerCase() || 'medium'}`}>
                     {task.criticality || 'Medium'}
@@ -205,13 +244,23 @@ function App() {
                   )}
                 </div>
               </div>
-              <button
-                className="delete-btn"
-                onClick={() => deleteTask(task.id)}
-                aria-label="Delete Task"
-              >
-                <Trash2 size={18} />
-              </button>
+
+              <div className="action-btns">
+                <button
+                  className="edit-btn"
+                  onClick={() => startEdit(task)}
+                  aria-label="Edit Task"
+                >
+                  <Pencil size={18} />
+                </button>
+                <button
+                  className="delete-btn"
+                  onClick={() => deleteTask(task.id)}
+                  aria-label="Delete Task"
+                >
+                  <Trash2 size={18} />
+                </button>
+              </div>
             </div>
           ))
         )}

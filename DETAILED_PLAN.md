@@ -11,8 +11,9 @@ This document outlines the full technical specification, design philosophy, and 
 
 ## 2. Core Features
 - **Task Management**:
-  - Add new tasks with title and optional description.
+  - Add new tasks with title and detailed descriptions.
   - Mark tasks as 'Completed' or 'Pending'.
+  - **Edit Functionality**: Modify existing tasks (title, description, priority, due date).
   - **Priority System**: Categorize tasks as High, Medium, or Low criticality.
   - **Deadline Tracking**: Assign due dates to tasks using a native calendar picker.
   - Delete tasks with confirmation or smooth exit animation.
@@ -49,6 +50,7 @@ This document outlines the full technical specification, design philosophy, and 
   {
     "id": "string",
     "text": "string",
+    "description": "string",
     "completed": "boolean",
     "criticality": "string (High | Medium | Low)",
     "dueDate": "string (ISO Date)",
