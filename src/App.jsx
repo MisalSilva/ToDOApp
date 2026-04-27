@@ -52,15 +52,23 @@ function App() {
     if (!newTask.trim()) return;
 
     try {
-      await addDoc(collection(db, 'tasks'), {
+      console.log("Attempting to add task:", newTask);
+      const docRef = await addDoc(collection(db, 'tasks'), {
         text: newTask,
         completed: false,
         createdAt: serverTimestamp()
       });
+      console.log("Task added with ID:", docRef.id);
       setNewTask('');
     } catch (err) {
-      console.error("Error adding task:", err);
-      alert("Failed to add task. Check your Firebase config!");
+      console.error("Detailed Error adding task:", err);
+      if (err.code === 'permission-denied') {
+        alert("Permission denied! Please check your Firestore Security Rules.");
+      } else if (err.code === 'unavailable') {
+        alert("Firestore is unavailable. Check your internet connection.");
+      } else {
+        alert(`Failed to add task: ${err.message}. Ensure you have created the Firestore database in the Firebase Console.`);
+      }
     }
   };
 
@@ -71,6 +79,7 @@ function App() {
       });
     } catch (err) {
       console.error("Error toggling task:", err);
+      alert("Error updating task status. Check console for details.");
     }
   };
 
