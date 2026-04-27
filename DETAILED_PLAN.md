@@ -13,6 +13,8 @@ This document outlines the full technical specification, design philosophy, and 
 - **Task Management**:
   - Add new tasks with title and optional description.
   - Mark tasks as 'Completed' or 'Pending'.
+  - **Priority System**: Categorize tasks as High, Medium, or Low criticality.
+  - **Deadline Tracking**: Assign due dates to tasks using a native calendar picker.
   - Delete tasks with confirmation or smooth exit animation.
 - **Filtering System**:
   - **All**: View every task.
@@ -48,8 +50,10 @@ This document outlines the full technical specification, design philosophy, and 
     "id": "string",
     "text": "string",
     "completed": "boolean",
+    "criticality": "string (High | Medium | Low)",
+    "dueDate": "string (ISO Date)",
     "createdAt": "timestamp",
-    "userId": "string (future-proofing for auth)"
+    "userId": "string"
   }
   ```
 

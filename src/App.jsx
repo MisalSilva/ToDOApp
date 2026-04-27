@@ -1,22 +1,22 @@
 import { useState, useEffect } from 'react';
-import { 
-  collection, 
-  addDoc, 
-  onSnapshot, 
-  query, 
-  orderBy, 
-  updateDoc, 
-  doc, 
+import {
+  collection,
+  addDoc,
+  onSnapshot,
+  query,
+  orderBy,
+  updateDoc,
+  doc,
   deleteDoc,
-  serverTimestamp 
+  serverTimestamp
 } from 'firebase/firestore';
 import { db } from './firebase';
-import { 
-  Sun, 
-  Moon, 
-  Plus, 
-  Trash2, 
-  Check, 
+import {
+  Sun,
+  Moon,
+  Plus,
+  Trash2,
+  Check,
   Circle,
   Filter
 } from 'lucide-react';
@@ -24,6 +24,8 @@ import {
 function App() {
   const [tasks, setTasks] = useState([]);
   const [newTask, setNewTask] = useState('');
+  const [criticality, setCriticality] = useState('Medium');
+  const [dueDate, setDueDate] = useState('');
   const [filter, setFilter] = useState('all'); // all, pending, completed
   const [theme, setTheme] = useState(localStorage.getItem('theme') || 'light');
 
@@ -56,10 +58,14 @@ function App() {
       const docRef = await addDoc(collection(db, 'tasks'), {
         text: newTask,
         completed: false,
+        criticality: criticality,
+        dueDate: dueDate,
         createdAt: serverTimestamp()
       });
       console.log("Task added with ID:", docRef.id);
       setNewTask('');
+      setDueDate('');
+      setCriticality('Medium');
     } catch (err) {
       console.error("Detailed Error adding task:", err);
       if (err.code === 'permission-denied') {
@@ -102,9 +108,9 @@ function App() {
   return (
     <div className="app-container">
       <header className="header">
-        <h1>To Do App</h1>
-        <button 
-          className="theme-toggle" 
+        <h1>ToDo Mate</h1>
+        <button
+          className="theme-toggle"
           onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}
           aria-label="Toggle Theme"
         >
@@ -113,32 +119,53 @@ function App() {
       </header>
 
       <form className="input-group" onSubmit={addTask}>
-        <input 
-          type="text" 
-          placeholder="What needs to be done?" 
-          value={newTask}
-          onChange={(e) => setNewTask(e.target.value)}
-        />
-        <button type="submit" className="add-btn">
-          <Plus size={20} style={{ verticalAlign: 'middle', marginRight: '4px' }} />
-          Add
-        </button>
+        <div className="input-row">
+          <input
+            type="text"
+            placeholder="What needs to be done?"
+            value={newTask}
+            onChange={(e) => setNewTask(e.target.value)}
+          />
+          <button type="submit" className="add-btn">
+            <Plus size={20} style={{ verticalAlign: 'middle', marginRight: '4px' }} />
+            Add
+          </button>
+        </div>
+
+        <div className="input-controls">
+          <select
+            value={criticality}
+            onChange={(e) => setCriticality(e.target.value)}
+            aria-label="Criticality"
+          >
+            <option value="Low">Low</option>
+            <option value="Medium">Medium</option>
+            <option value="High">High</option>
+          </select>
+
+          <input
+            type="date"
+            value={dueDate}
+            onChange={(e) => setDueDate(e.target.value)}
+            aria-label="Due Date"
+          />
+        </div>
       </form>
 
       <div className="filters">
-        <button 
+        <button
           className={`filter-btn ${filter === 'all' ? 'active' : ''}`}
           onClick={() => setFilter('all')}
         >
           All
         </button>
-        <button 
+        <button
           className={`filter-btn ${filter === 'pending' ? 'active' : ''}`}
           onClick={() => setFilter('pending')}
         >
           Pending
         </button>
-        <button 
+        <button
           className={`filter-btn ${filter === 'completed' ? 'active' : ''}`}
           onClick={() => setFilter('completed')}
         >
@@ -155,17 +182,30 @@ function App() {
           filteredTasks.map(task => (
             <div key={task.id} className="task-item">
               <div className="task-content">
-                <div 
-                  className={`checkbox ${task.completed ? 'completed' : ''}`}
-                  onClick={() => toggleTask(task.id, task.completed)}
-                >
-                  {task.completed && <Check size={14} />}
+                <div className="task-main">
+                  <div
+                    className={`checkbox ${task.completed ? 'completed' : ''}`}
+                    onClick={() => toggleTask(task.id, task.completed)}
+                  >
+                    {task.completed && <Check size={14} />}
+                  </div>
+                  <span className={`task-text ${task.completed ? 'completed' : ''}`}>
+                    {task.text}
+                  </span>
                 </div>
-                <span className={`task-text ${task.completed ? 'completed' : ''}`}>
-                  {task.text}
-                </span>
+
+                <div className="task-meta">
+                  <span className={`badge ${task.criticality?.toLowerCase() || 'medium'}`}>
+                    {task.criticality || 'Medium'}
+                  </span>
+                  {task.dueDate && (
+                    <span className="due-date">
+                      <Filter size={12} /> {task.dueDate}
+                    </span>
+                  )}
+                </div>
               </div>
-              <button 
+              <button
                 className="delete-btn"
                 onClick={() => deleteTask(task.id)}
                 aria-label="Delete Task"
