@@ -93,7 +93,7 @@ function App() {
   return (
     <div className="app-container">
       <header className="header">
-        <h1>Tech Tonic Tasks</h1>
+        <h1>To Do App</h1>
         <button 
           className="theme-toggle" 
           onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}
