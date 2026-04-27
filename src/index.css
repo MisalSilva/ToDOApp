@@ -1,6 +1,6 @@
 :root {
   --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
-  
+
   /* Light Mode Tokens */
   --bg-primary: #f8fafc;
   --bg-secondary: #ffffff;
@@ -99,8 +99,52 @@ h1 {
 
 .input-group {
   display: flex;
+  flex-direction: column;
   gap: 0.75rem;
   margin-bottom: 1.5rem;
+}
+
+.input-row {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.input-controls {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+  width: 100%;
+}
+
+textarea,
+select,
+input[type="date"] {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  color: var(--text-primary);
+  padding: 0.75rem 1rem;
+  border-radius: 0.75rem;
+  outline: none;
+  font-family: var(--font-sans);
+  transition: border-color 0.2s ease;
+}
+
+textarea {
+  resize: vertical;
+  min-height: 80px;
+}
+
+select,
+input[type="date"] {
+  cursor: pointer;
+  flex: 1;
+}
+
+textarea:focus,
+select:focus,
+input[type="date"]:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2);
 }
 
 input[type="text"] {
@@ -128,6 +172,10 @@ input[type="text"]:focus {
   font-weight: 600;
   cursor: pointer;
   transition: background 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
 }
 
 .add-btn:hover {
@@ -181,9 +229,53 @@ input[type="text"]:focus {
 
 .task-content {
   display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  flex: 1;
+}
+
+.task-main {
+  display: flex;
   align-items: center;
   gap: 0.75rem;
-  flex: 1;
+}
+
+.task-meta {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-left: 2rem;
+  font-size: 0.75rem;
+}
+
+.badge {
+  padding: 0.2rem 0.6rem;
+  border-radius: 2rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 0.65rem;
+}
+
+.badge.high {
+  background: rgba(239, 68, 68, 0.2);
+  color: #ef4444;
+}
+
+.badge.medium {
+  background: rgba(245, 158, 11, 0.2);
+  color: #f59e0b;
+}
+
+.badge.low {
+  background: rgba(16, 185, 129, 0.2);
+  color: #10b981;
+}
+
+.due-date {
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
 }
 
 .checkbox {
@@ -206,12 +298,42 @@ input[type="text"]:focus {
 
 .task-text {
   font-size: 1rem;
+  font-weight: 600;
   transition: all 0.2s ease;
 }
 
-.task-text.completed {
+.task-desc {
+  font-size: 0.875rem;
+  color: var(--text-muted);
+  margin-left: 2rem;
+  margin-top: -0.25rem;
+  line-height: 1.4;
+}
+
+.task-text.completed,
+.task-desc.completed {
   color: var(--text-muted);
   text-decoration: line-through;
+}
+
+.action-btns {
+  display: flex;
+  gap: 0.25rem;
+}
+
+.edit-btn {
+  color: var(--text-muted);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 0.4rem;
+  border-radius: 0.4rem;
+  transition: all 0.2s ease;
+}
+
+.edit-btn:hover {
+  color: var(--accent);
+  background: rgba(99, 102, 241, 0.1);
 }
 
 .delete-btn {
@@ -230,19 +352,26 @@ input[type="text"]:focus {
 }
 
 @keyframes slideIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @media (max-width: 480px) {
   .app-container {
     padding: 1.5rem;
   }
-  
+
   .input-group {
     flex-direction: column;
   }
-  
+
   .add-btn {
     width: 100%;
   }
