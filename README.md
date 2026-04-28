@@ -1,5 +1,6 @@
 # ToDo Mate
 ### A simple ToDo App fully build from AI, that brings a Unique Experience to Users by simplyfying Daytoday Task Management
+#### Hosted App - https://todo-mate.onrender.com/
 
 ## 1. Technology Stack
 - **Frontend Framework**: React (Vite-powered) for rapid development and optimized builds.
