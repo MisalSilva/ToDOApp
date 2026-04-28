@@ -1,5 +1,5 @@
 # ToDo Mate
-### A simple ToDo App fully build from AI, that brings a Unique Experience to Users by simplyfying Daytoday Task Management
+### A simple ToDo App fully build from Google's Antigravity, that brings a Unique Experience to Users by simplyfying Daytoday Task Management
 #### Hosted App - https://todo-mate.onrender.com/
 
 ## 1. Technology Stack
