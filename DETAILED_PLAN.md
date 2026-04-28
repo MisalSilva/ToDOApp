@@ -18,9 +18,10 @@ This document outlines the full technical specification, design philosophy, and 
   - **Deadline Tracking**: Assign due dates to tasks using a native calendar picker.
   - Delete tasks with confirmation or smooth exit animation.
 - **Filtering System**:
-  - **All**: View every task.
-  - **Pending**: Tasks yet to be done.
-  - **Completed**: Successfully finished tasks.
+  - **Status Filters**: All, Pending, and Completed tabs.
+  - **Advanced Filters**: Filter tasks by **Priority** (High, Medium, Low) and **Due Date**. These filters apply across all status tabs.
+- **Navigation**:
+  - **Top Navigation Bar**: A dedicated panel at the top for the app title ("ToDo Mate") and the Theme Toggle button.
 - **Theming**:
   - **Light Mode**: High contrast, clean, airy design.
   - **Dark Mode**: Sleek, deep-gray palette with vibrant accents to reduce eye strain.
@@ -32,6 +33,7 @@ This document outlines the full technical specification, design philosophy, and 
 | :--- | :--- | :--- |
 | `--bg-primary` | `#F8FAFC` | `#0F172A` |
 | `--bg-secondary`| `#FFFFFF` | `#1E293B` |
+| `--bg-card`     | `rgba(255, 255, 255, 0.8)` | `rgba(30, 41, 59, 0.7)` |
 | `--text-primary`| `#1E293B` | `#F8FAFC` |
 | `--text-muted`  | `#64748B` | `#94A3B8` |
 | `--accent`      | `#6366F1` | `#818CF8` |
@@ -61,26 +63,27 @@ This document outlines the full technical specification, design philosophy, and 
 
 ### Component Hierarchy
 - `App.jsx`: State hub, ThemeProvider, and Main Layout.
-- `Header.jsx`: Title and Theme Switcher.
-- `TaskForm.jsx`: Input for new tasks.
-- `FilterTabs.jsx`: Tab-based navigation for filtering.
-- `TaskList.jsx`: Mapping logic for task items.
-- `TaskItem.jsx`: Individual task card with toggle and delete buttons.
+- `Navbar.jsx`: (Inside App) Fixed top bar with Title and Theme Switcher.
+- `TaskForm.jsx`: (Inside App) Input for new tasks.
+- `FilterSection.jsx`: (Inside App) Status tabs + Priority & Date filter controls.
+- `TaskList.jsx`: (Inside App) Mapping logic for task items.
+- `TaskItem.jsx`: (Inside App) Individual task card with toggle and delete buttons.
 
 ## 5. Implementation Roadmap
 1. **Phase 1: Foundation**
    - Initialize Vite React project.
    - Install `firebase` and `lucide-react`.
-   - Set up `src/firebase.config.js`.
+   - Set up `src/firebase.js`.
 2. **Phase 2: Design System**
    - Implement `index.css` with CSS variables for themes.
-   - Create layout containers.
+   - Create layout containers and Navigation Panel styling.
 3. **Phase 3: Database Integration**
    - Implement Firestore CRUD operations (addDoc, updateDoc, deleteDoc).
    - Set up `onSnapshot` for real-time updates.
 4. **Phase 4: Feature Implementation**
-   - Build Filtering logic.
-   - Implement Theme Toggling with local storage persistence.
+   - Build Status Filtering logic.
+   - **New**: Implement Advanced Filters (Priority & Date).
+   - Implement Theme Toggling with local storage persistence and move to Navbar.
 5. **Phase 5: Polish**
    - Add micro-animations (hover effects, list transitions).
    - Responsive design testing.
@@ -88,4 +91,5 @@ This document outlines the full technical specification, design philosophy, and 
 ## 6. Verification & Quality Assurance
 - **Real-time Test**: Ensure adding a task in one window reflects in another.
 - **Theme Persistence**: Check if the selected theme remains after a page refresh.
+- **Filter Accuracy**: Verify that combinations of status, priority, and date filters work correctly.
 - **Accessibility**: Ensure buttons have proper ARIA labels and focus states.
