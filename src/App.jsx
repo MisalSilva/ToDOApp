@@ -31,6 +31,9 @@ function App() {
   const [dueDate, setDueDate] = useState('');
   const [editingId, setEditingId] = useState(null);
   const [filter, setFilter] = useState('all'); // all, pending, completed
+  const [priorityFilter, setPriorityFilter] = useState('all'); // all, High, Medium, Low
+  const [dateFilter, setDateFilter] = useState('');
+  const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
   const [theme, setTheme] = useState(localStorage.getItem('theme') || 'light');
 
   // Theme Sync
@@ -123,149 +126,218 @@ function App() {
   };
 
   const filteredTasks = tasks.filter(task => {
-    if (filter === 'pending') return !task.completed;
-    if (filter === 'completed') return task.completed;
-    return true;
+    // Status Filter
+    const matchesStatus = filter === 'all' ||
+      (filter === 'pending' && !task.completed) ||
+      (filter === 'completed' && task.completed);
+
+    // Priority Filter
+    const matchesPriority = priorityFilter === 'all' || task.criticality === priorityFilter;
+
+    // Date Filter
+    const matchesDate = !dateFilter || task.dueDate === dateFilter;
+
+    return matchesStatus && matchesPriority && matchesDate;
   });
 
-  return (
-    <div className="app-container">
-      <header className="header">
-        <h1>ToDo Mate</h1>
-        <button
-          className="theme-toggle"
-          onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}
-          aria-label="Toggle Theme"
-        >
-          {theme === 'light' ? <Moon size={20} /> : <Sun size={20} />}
-        </button>
-      </header>
+  const hasActiveFilters = priorityFilter !== 'all' || dateFilter !== '';
 
-      <form className="input-group" onSubmit={handleSubmit}>
-        <div className="input-row">
-          <input
-            type="text"
-            placeholder="Task title..."
-            value={newTask}
-            onChange={(e) => setNewTask(e.target.value)}
-            required
-          />
-          <button type="submit" className="add-btn">
-            {editingId ? <Check size={20} /> : <Plus size={20} />}
-            {editingId ? 'Update' : 'Add'}
+  return (
+    <>
+      <nav className="navbar">
+        <div className="nav-content">
+          <h1>ToDo Mate</h1>
+          <button
+            className="theme-toggle"
+            onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}
+            aria-label="Toggle Theme"
+          >
+            {theme === 'light' ? <Moon size={20} /> : <Sun size={20} />}
           </button>
-          {editingId && (
-            <button type="button" className="theme-toggle" onClick={resetForm}>
-              <X size={20} />
+        </div>
+      </nav>
+
+      <div className="app-container">
+        <form className="input-group" onSubmit={handleSubmit}>
+          <div className="input-row">
+            <input
+              type="text"
+              placeholder="Task title..."
+              value={newTask}
+              onChange={(e) => setNewTask(e.target.value)}
+              required
+            />
+            <button type="submit" className="add-btn">
+              {editingId ? <Check size={20} /> : <Plus size={20} />}
+              {editingId ? 'Update' : 'Add'}
             </button>
+            {editingId && (
+              <button type="button" className="theme-toggle" onClick={resetForm}>
+                <X size={20} />
+              </button>
+            )}
+          </div>
+
+          <textarea
+            placeholder="Add a description (optional)..."
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+          />
+
+          <div className="input-controls">
+            <select
+              value={criticality}
+              onChange={(e) => setCriticality(e.target.value)}
+            >
+              <option value="Low">Low Priority</option>
+              <option value="Medium">Medium Priority</option>
+              <option value="High">High Priority</option>
+            </select>
+
+            <input
+              type="date"
+              value={dueDate}
+              onChange={(e) => setDueDate(e.target.value)}
+            />
+          </div>
+        </form>
+
+        <div className="filter-section">
+          <div className="filter-header">
+            <div className="status-filters">
+              <button
+                className={`filter-btn ${filter === 'all' ? 'active' : ''}`}
+                onClick={() => setFilter('all')}
+              >
+                All ({tasks.length})
+              </button>
+              <button
+                className={`filter-btn ${filter === 'pending' ? 'active' : ''}`}
+                onClick={() => setFilter('pending')}
+              >
+                Pending ({tasks.filter(t => !t.completed).length})
+              </button>
+              <button
+                className={`filter-btn ${filter === 'completed' ? 'active' : ''}`}
+                onClick={() => setFilter('completed')}
+              >
+                Completed ({tasks.filter(t => t.completed).length})
+              </button>
+            </div>
+
+            <button
+              className={`advanced-toggle-btn ${showAdvancedFilters ? 'active' : ''} ${hasActiveFilters ? 'has-filters' : ''}`}
+              onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
+              aria-label="Toggle advanced filters"
+            >
+              <Filter size={18} />
+              <span>Filters</span>
+              {hasActiveFilters && <span className="filter-dot"></span>}
+            </button>
+          </div>
+
+          {showAdvancedFilters && (
+            <div className="advanced-filters">
+              <div className="filter-control">
+                <select
+                  value={priorityFilter}
+                  onChange={(e) => setPriorityFilter(e.target.value)}
+                >
+                  <option value="all">All Priorities</option>
+                  <option value="High">High Priority</option>
+                  <option value="Medium">Medium Priority</option>
+                  <option value="Low">Low Priority</option>
+                </select>
+              </div>
+
+              <div className="filter-control">
+                <input
+                  type="date"
+                  value={dateFilter}
+                  onChange={(e) => setDateFilter(e.target.value)}
+                />
+                {dateFilter && (
+                  <button className="clear-filter" onClick={() => setDateFilter('')}>
+                    <X size={14} />
+                  </button>
+                )}
+              </div>
+            </div>
           )}
         </div>
 
-        <textarea
-          placeholder="Add a description (optional)..."
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
-        />
-
-        <div className="input-controls">
-          <select
-            value={criticality}
-            onChange={(e) => setCriticality(e.target.value)}
-          >
-            <option value="Low">Low Priority</option>
-            <option value="Medium">Medium Priority</option>
-            <option value="High">High Priority</option>
-          </select>
-
-          <input
-            type="date"
-            value={dueDate}
-            onChange={(e) => setDueDate(e.target.value)}
-          />
-        </div>
-      </form>
-
-      <div className="filters">
-        <button
-          className={`filter-btn ${filter === 'all' ? 'active' : ''}`}
-          onClick={() => setFilter('all')}
-        >
-          All ({tasks.length})
-        </button>
-        <button
-          className={`filter-btn ${filter === 'pending' ? 'active' : ''}`}
-          onClick={() => setFilter('pending')}
-        >
-          Pending ({tasks.filter(t => !t.completed).length})
-        </button>
-        <button
-          className={`filter-btn ${filter === 'completed' ? 'active' : ''}`}
-          onClick={() => setFilter('completed')}
-        >
-          Completed ({tasks.filter(t => t.completed).length})
-        </button>
-      </div>
-
-      <div className="task-list">
-        {filteredTasks.length === 0 ? (
-          <p style={{ textAlign: 'center', color: 'var(--text-muted)', marginTop: '2rem' }}>
-            No tasks found.
-          </p>
-        ) : (
-          filteredTasks.map(task => (
-            <div key={task.id} className="task-item">
-              <div className="task-content">
-                <div className="task-main">
-                  <div
-                    className={`checkbox ${task.completed ? 'completed' : ''}`}
-                    onClick={() => toggleTask(task.id, task.completed)}
-                  >
-                    {task.completed && <Check size={14} />}
-                  </div>
-                  <span className={`task-text ${task.completed ? 'completed' : ''}`}>
-                    {task.text}
-                  </span>
-                </div>
-
-                {task.description && (
-                  <p className={`task-desc ${task.completed ? 'completed' : ''}`}>
-                    {task.description}
-                  </p>
-                )}
-
-                <div className="task-meta">
-                  <span className={`badge ${task.criticality?.toLowerCase() || 'medium'}`}>
-                    {task.criticality || 'Medium'}
-                  </span>
-                  {task.dueDate && (
-                    <span className="due-date">
-                      <Filter size={12} /> {task.dueDate}
-                    </span>
-                  )}
-                </div>
-              </div>
-
-              <div className="action-btns">
+        <div className="task-list">
+          {filteredTasks.length === 0 ? (
+            <div className="empty-state">
+              <p>No tasks match your filters.</p>
+              {(priorityFilter !== 'all' || dateFilter) && (
                 <button
-                  className="edit-btn"
-                  onClick={() => startEdit(task)}
-                  aria-label="Edit Task"
+                  className="reset-filters-btn"
+                  onClick={() => {
+                    setPriorityFilter('all');
+                    setDateFilter('');
+                  }}
                 >
-                  <Pencil size={18} />
+                  Clear filters
                 </button>
-                <button
-                  className="delete-btn"
-                  onClick={() => deleteTask(task.id)}
-                  aria-label="Delete Task"
-                >
-                  <Trash2 size={18} />
-                </button>
-              </div>
+              )}
             </div>
-          ))
-        )}
+          ) : (
+            filteredTasks.map(task => (
+              <div key={task.id} className="task-item">
+                <div className="task-content">
+                  <div className="task-main">
+                    <div
+                      className={`checkbox ${task.completed ? 'completed' : ''}`}
+                      onClick={() => toggleTask(task.id, task.completed)}
+                    >
+                      {task.completed && <Check size={14} />}
+                    </div>
+                    <span className={`task-text ${task.completed ? 'completed' : ''}`}>
+                      {task.text}
+                    </span>
+                  </div>
+
+                  {task.description && (
+                    <p className={`task-desc ${task.completed ? 'completed' : ''}`}>
+                      {task.description}
+                    </p>
+                  )}
+
+                  <div className="task-meta">
+                    <span className={`badge ${task.criticality?.toLowerCase() || 'medium'}`}>
+                      {task.criticality || 'Medium'}
+                    </span>
+                    {task.dueDate && (
+                      <span className="due-date">
+                        <Filter size={12} /> {task.dueDate}
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                <div className="action-btns">
+                  <button
+                    className="edit-btn"
+                    onClick={() => startEdit(task)}
+                    aria-label="Edit Task"
+                  >
+                    <Pencil size={18} />
+                  </button>
+                  <button
+                    className="delete-btn"
+                    onClick={() => deleteTask(task.id)}
+                    aria-label="Delete Task"
+                  >
+                    <Trash2 size={18} />
+                  </button>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
       </div>
-    </div>
+    </>
   );
 }
 
